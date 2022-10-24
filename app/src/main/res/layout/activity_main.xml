@@ -1,0 +1,39 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <org.osmdroid.views.MapView
+        android:id="@+id/mapview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/search_button"
+        android:layout_alignParentStart="true">
+    </org.osmdroid.views.MapView>
+
+    <EditText
+        android:id="@+id/search_txtview"
+        android:layout_width="209dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:hint="@string/hint_text"
+        android:text="Meistraat 5, Antwerpen" />
+
+    <Button
+        android:id="@+id/search_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/clear_button"
+        android:text="@string/button_text" />
+
+    <Button
+        android:id="@+id/clear_button"
+        android:layout_width="92dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:text="Clear" />
+</RelativeLayout>
