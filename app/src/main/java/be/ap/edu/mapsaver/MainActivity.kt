@@ -14,6 +14,8 @@ import android.widget.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.beust.klaxon.*
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import okhttp3.*
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -26,6 +28,8 @@ import java.util.*
 
 
 class MainActivity : Activity() {
+
+    val db = Firebase.firestore
 
     private var mMapView: MapView? = null
     private var mMyLocationOverlay: ItemizedOverlay<OverlayItem>? = null
