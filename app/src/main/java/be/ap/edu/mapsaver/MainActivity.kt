@@ -8,6 +8,7 @@ import android.location.Address
 import android.location.Geocoder
 import android.os.AsyncTask
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
@@ -30,6 +31,9 @@ import java.util.*
 class MainActivity : Activity() {
 
     val db = Firebase.firestore
+    
+    //arraylist of toilet objects for the map / init file
+    var toilets = ArrayList<Toilet>()
 
     private var mMapView: MapView? = null
     private var mMyLocationOverlay: ItemizedOverlay<OverlayItem>? = null
@@ -41,6 +45,13 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        //important! set your user agent to prevent getting banned from the osm servers
+        Configuration.getInstance().load(applicationContext, PreferenceManager.getDefaultSharedPreferences(applicationContext))
+        Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
+
+        //pull toilets:
+        MapInit().Initialize()
 
         // Problem with SQLite db, solution :
         // https://stackoverflow.com/questions/40100080/osmdroid-maps-not-loading-on-my-device
@@ -64,7 +75,9 @@ class MainActivity : Activity() {
                     val addr = geoResults?.get(0)
                     val location = addr?.let { it1 -> GeoPoint(it1.latitude, addr.longitude) }
 
-                    moveMap(location)
+                    if (location != null) {
+                        moveMap(location)
+                    }
                 }else{
                     Toast.makeText(this,"Location Not Found",Toast.LENGTH_LONG)
                 }
@@ -131,6 +144,11 @@ class MainActivity : Activity() {
         mMapView?.controller?.setZoom(17.0)
         // default = Ellermanstraat 33
         setCenter(GeoPoint(51.23020595, 4.41655480828479), "Campus Ellermanstraat")
+    }
+
+    fun addToilet(toilet: Toilet) {
+        toilets.add(toilet)
+        toilet.straat?.let { addMarker(GeoPoint(toilet.lat, toilet.long), it) }
     }
 
     private fun addMarker(geoPoint: GeoPoint, name: String) {
