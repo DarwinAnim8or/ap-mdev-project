@@ -15,6 +15,7 @@ import android.widget.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.beust.klaxon.*
+import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import okhttp3.*
@@ -43,15 +44,21 @@ class MainActivity : Activity() {
     private var clearButton: Button? = null
     private val urlNominatim = "https://nominatim.openstreetmap.org/"
 
+    private var geocoder: Geocoder? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        geocoder = Geocoder(this, Locale.getDefault())
         super.onCreate(savedInstanceState)
+
+        //Don't forget to actually init firebase:
+        FirebaseApp.initializeApp(this)
+
+        //create geocoder object 
+
 
         //important! set your user agent to prevent getting banned from the osm servers
         Configuration.getInstance().load(applicationContext, PreferenceManager.getDefaultSharedPreferences(applicationContext))
         Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
-
-        //pull toilets:
-        MapInit().Initialize()
 
         // Problem with SQLite db, solution :
         // https://stackoverflow.com/questions/40100080/osmdroid-maps-not-loading-on-my-device
@@ -69,8 +76,8 @@ class MainActivity : Activity() {
         searchButton = findViewById(R.id.search_button)
         searchButton?.setOnClickListener {
             try {
-                val geocoder = Geocoder(this, Locale.getDefault())
-                var geoResults: MutableList<Address>? = geocoder.getFromLocationName("Ellermanstraat Antwerpen", 1)
+                //val geocoder = Geocoder(this, Locale.getDefault())
+                var geoResults: MutableList<Address>? = geocoder!!.getFromLocationName(searchField!!.text.toString(), 1)
                 if (geoResults?.isNotEmpty() == true) {
                     val addr = geoResults?.get(0)
                     val location = addr?.let { it1 -> GeoPoint(it1.latitude, addr.longitude) }
@@ -91,6 +98,12 @@ class MainActivity : Activity() {
             mMapView?.overlays?.clear()
             // Redraw map
             mMapView?.invalidate()
+
+            // Clear search field
+            searchField?.setText("")
+
+            //Add toilets
+
         }
 
         if (hasPermissions()) {
@@ -101,6 +114,9 @@ class MainActivity : Activity() {
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION), 100)
         }
+
+        //pull toilets:
+        MapInit().Initialize()
     }
 
     private fun moveMap(location: GeoPoint) {
@@ -147,8 +163,94 @@ class MainActivity : Activity() {
     }
 
     fun addToilet(toilet: Toilet) {
-        toilets.add(toilet)
-        toilet.straat?.let { addMarker(GeoPoint(toilet.lat, toilet.long), it) }
+        Thread {
+            while (geocoder == null) {
+                Thread.sleep(100)
+            }
+
+            toilets.add(toilet)
+
+            try {
+                if (geocoder == null) geocoder = Geocoder(this)
+                var geoResults: MutableList<Address>? = geocoder!!.getFromLocationName(toilet.straat, 1)
+                if (geoResults?.isNotEmpty() == true) {
+                    val addr = geoResults?.get(0)
+                    val location = addr?.let { it1 -> GeoPoint(it1.latitude, addr.longitude) }
+
+                    if (location != null) {
+                        addMarker(location, "de poot")
+                    }
+                }
+            } catch (e: java.lang.Exception) {
+                //print to console if error
+                print(e.message)
+            }
+        }.start()
+
+
+        
+        //get lat and long from street using geocoder
+
+        
+
+        /*try {
+            var searchString = toilet.straat; //+ " " + toilet.huisnummer
+
+            var geoResults: MutableList<Address>? = geocoder!!.getFromLocationName(searchString, 1)
+            if (geoResults?.isNotEmpty() == true) {
+                val addr = geoResults?.get(0)
+                val location = addr?.let { it1 -> GeoPoint(it1.latitude, addr.longitude) }
+
+                if (location != null) {
+                    if (searchString != null) {
+                        addMarker(location, searchString)
+                    }
+                }
+            }else{
+                Toast.makeText(this,"Location Not Found",Toast.LENGTH_LONG)
+            }
+        } catch (e: java.lang.Exception) {
+            println(e.message)
+        }*/
+
+        //convert lat/long to doubles:
+        /*var lat = 0.0
+        var long = 0.0
+
+        if (toilet.long != "null" && toilet.lat != "null") {
+            lat = toilet.lat!!.toDouble()
+            long = toilet.long!!.toDouble()
+        }
+
+        if (lat == 0.0 || long == 0.0) {
+            //get lat/long from address
+            var geoResults: MutableList<Address>? = geocoder!!.getFromLocationName(toilet.straat, 1)
+            if (geoResults?.isNotEmpty() == true) {
+                val addr = geoResults?.get(0)
+                val location = addr?.let { it1 -> GeoPoint(it1.latitude, addr.longitude) }
+
+                if (location != null) {
+                    lat = location.latitude
+                    long = location.longitude
+                }
+            }
+            else {
+                System.out.println("Address Not Found For " + toilet.straat)
+            }
+        }
+
+        var geoResults: MutableList<Address>? = this.geocoder!!.getFromLocation(lat!!, long!!, 1)
+        if (geoResults?.isNotEmpty() == true) {
+            val addr = geoResults?.get(0)
+            val location = addr?.let { it1 -> GeoPoint(it1.latitude, addr.longitude) }
+
+            if (location != null) {
+                addMarker(location, addr.getAddressLine(0))
+            }
+
+        }else{
+            System.out.println("Location Not Found For " + toilet.long + " - " + toilet.lat)
+        }*/
     }
 
     private fun addMarker(geoPoint: GeoPoint, name: String) {

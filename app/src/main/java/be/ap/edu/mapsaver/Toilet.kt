@@ -12,7 +12,7 @@ class Toilet {
     var luiertafel: String? = null
     var doelgroep: String? = null
     var openingsuren: String? = null
-    var lat = 0.0
-    var long = 0.0
+    var lat: String? = null
+    var long: String? = null
     var handicap: String? = null
 }

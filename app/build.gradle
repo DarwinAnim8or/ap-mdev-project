@@ -1,15 +1,23 @@
+plugins {
+    id 'com.android.application'
+
+    // Add the Google services Gradle plugin
+    id 'com.google.gms.google-services'
+}
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 
+
+
 android {
-    compileSdkVersion 29
-    buildToolsVersion '29.0.2'
+    compileSdkVersion 31
 
     defaultConfig {
         applicationId "be.ap.edu.mapsaver"
-        minSdkVersion 29
-        targetSdkVersion 29
+        minSdkVersion 30
+        targetSdkVersion 31
         versionCode 2
         versionName "2.0"
     }
@@ -22,6 +30,7 @@ android {
 }
 
 
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'org.osmdroid:osmdroid-android:6.1.10'
@@ -29,10 +38,11 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
-    implementation platform('com.google.firebase:firebase-bom:31.0.1')
+    implementation platform('com.google.firebase:firebase-bom:31.1.0')
     implementation 'com.google.firebase:firebase-firestore-ktx'
 
 }
 repositories {
     mavenCentral()
 }
+
