@@ -147,15 +147,12 @@ class MainActivity : Activity() {
 
     fun initMap() {
         mMapView?.setTileSource(TileSourceFactory.MAPNIK)
-        // create a static ItemizedOverlay showing some markers
-        addMarker(GeoPoint(51.2162764, 4.41160291036386), "Campus Meistraat")
-        addMarker(GeoPoint(51.2196911, 4.4092625), "Campus Lange Nieuwstraat")
-        // add receiver to get location from tap
-
 
          // MiniMap
         //val miniMapOverlay = MinimapOverlay(this, mMapView!!.tileRequestCompleteHandler)
         //this.mMapView?.overlays?.add(miniMapOverlay)
+
+        //get location
 
         mMapView?.controller?.setZoom(17.0)
         // default = Ellermanstraat 33
