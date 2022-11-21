@@ -18,6 +18,7 @@ class MapInit {
         //check firebase db to see if there is any map data:
         if (checkForData()) {
             //if there is data, load it
+            println("Data, exists, loading")
             loadMapData()
         } else {
             //if there is no data, create a new map
@@ -29,35 +30,10 @@ class MapInit {
         //simply check to see if there's anything in the firebase db
         //if there is, return true
         val toilets = db.collection("toilets")
-
-        //temp variable for snapshot
-        var snapshot: QuerySnapshot? = null
-        
-        toilets.get().addOnSuccessListener { result ->
-            for (document in result) {
-                println("DocumentSnapshot data: ${document.data}")
-            }
-
-            snapshot = result
-        }
-
-        if (snapshot != null) {
-            return true
-        } else {
-            return false
-        }
-
-        return false
+        return toilets.get() != null
     }
 
     fun createNewMap() {
-        //1. download geojson data from antw
-        //2. convert to toilet objects
-        //3. save to firebase
-        //4. load map data
-
-        //1. download geojson data from antw on a new thread
-
         //start new thread to download geojson data
         Thread {
             //download data
@@ -66,6 +42,23 @@ class MapInit {
 
             //convert to json
             val json = JSONObject(response)
+
+            /*
+                velden:
+                    -categorie
+                    -omschrijving
+                    -stadseigendom
+                    -betalend
+                    -straat
+                    -huisnummer
+                    -postcode
+                    -luiertafel
+                    -doelgroep
+                    -OPENINGSUREN_OPM
+                    -lat
+                    -long
+                    -INTEGRAAL_TOEGANKELIJK (handicap)
+             */
 
             //read json
             val toilets = ArrayList<Toilet>()
@@ -97,50 +90,9 @@ class MapInit {
             for (toilet in toilets) {
                 toilet.id?.let { db.collection("toilets").document(it).set(toilet) }
             }
+
+            loadMapData()
         }.start()
-
-            
-
-
-        /*val url = URL("https://opendata.arcgis.com/api/v3/datasets/eda49af804c9467e97393ca35e34714b_8/downloads/data?format=geojson&spatialRefId=4326&where=1%3D1")
-        val connection = url.openConnection() as HttpURLConnection
-        connection.requestMethod = "GET"
-        connection.setRequestProperty("Content-Type", "application/json")
-        connection.setRequestProperty("Accept", "application/json")
-        connection.doOutput = true
-        connection.connect()
-
-        val responseCode = connection.responseCode
-        println("Response code: $responseCode")
-
-        val inputStream = connection.inputStream
-        val json = inputStream.bufferedReader().use { it.readText() }
-        println(json)*/
-
-        //val url = URL("https://opendata.arcgis.com/api/v3/datasets/eda49af804c9467e97393ca35e34714b_8/downloads/data?format=geojson&spatialRefId=4326&where=1%3D1")
-        //val json = url.readText()
-
-        //2. sanitize data
-
-        /*
-        velden:
-            -categorie
-            -omschrijving
-            -stadseigendom
-            -betalend
-            -straat
-            -huisnummer
-            -postcode
-            -luiertafel
-            -doelgroep
-            -OPENINGSUREN_OPM
-            -lat
-            -long
-            -INTEGRAAL_TOEGANKELIJK (handicap)
-         */
-
-        //5. load map data
-        loadMapData()
     }
 
     fun loadMapData() {
