@@ -4,8 +4,8 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.*
 import android.location.Address
-import android.location.Geocoder
 import android.os.AsyncTask
 import android.os.Bundle
 import android.preference.PreferenceManager
@@ -36,7 +36,7 @@ class MainActivity : Activity() {
     //arraylist of toilet objects for the map / init file
     var toilets = ArrayList<Toilet>()
 
-    private var mMapView: MapView? = null
+    //private var mMapView: MapView? = null
     private var mMyLocationOverlay: ItemizedOverlay<OverlayItem>? = null
     private var items = ArrayList<OverlayItem>()
     private var searchField: EditText? = null
@@ -44,17 +44,21 @@ class MainActivity : Activity() {
     private var clearButton: Button? = null
     private val urlNominatim = "https://nominatim.openstreetmap.org/"
 
-    private var geocoder: Geocoder? = null
+    //static geocoder for use in other classes
+    companion object {
+        var geocoder: Geocoder? = null
+        var mMapView: MapView? = null
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        geocoder = Geocoder(this, Locale.getDefault())
+
         super.onCreate(savedInstanceState)
 
         //Don't forget to actually init firebase:
         FirebaseApp.initializeApp(this)
 
-        //create geocoder object 
-
+        //create geocoder object
+        geocoder = Geocoder(this, Locale.getDefault())
 
         //important! set your user agent to prevent getting banned from the osm servers
         Configuration.getInstance().load(applicationContext, PreferenceManager.getDefaultSharedPreferences(applicationContext))
@@ -152,37 +156,40 @@ class MainActivity : Activity() {
         //val miniMapOverlay = MinimapOverlay(this, mMapView!!.tileRequestCompleteHandler)
         //this.mMapView?.overlays?.add(miniMapOverlay)
 
-        //get location
+        //get location of user
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val locationListener = object : LocationListener {
+            override fun onLocationChanged(location: Location) {
+                val geoPoint = GeoPoint(location.latitude, location.longitude)
+                mMapView?.controller?.setZoom(17.0)
+                setCenter(geoPoint, "You are here")
+            }
 
-        mMapView?.controller?.setZoom(17.0)
-        // default = Ellermanstraat 33
-        setCenter(GeoPoint(51.23020595, 4.41655480828479), "Campus Ellermanstraat")
+            override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
+            override fun onProviderEnabled(provider: String) {}
+            override fun onProviderDisabled(provider: String) {}
+        }
     }
 
     fun addToilet(toilet: Toilet) {
-        Thread {
-            while (geocoder == null) {
-                Thread.sleep(100)
-            }
+        toilets.add(toilet);
 
-            toilets.add(toilet)
+        try {
+            var toiletName = toilet.straat + " " + toilet.huisnummer;
+            var geoResults: MutableList<Address>? = geocoder!!.getFromLocationName(toiletName, 1)
+            if (geoResults?.isNotEmpty() == true) {
+                val addr = geoResults?.get(0)
+                val location = addr?.let { it1 -> GeoPoint(it1.latitude, addr.longitude) }
 
-            try {
-                if (geocoder == null) geocoder = Geocoder(this)
-                var geoResults: MutableList<Address>? = geocoder!!.getFromLocationName(toilet.straat, 1)
-                if (geoResults?.isNotEmpty() == true) {
-                    val addr = geoResults?.get(0)
-                    val location = addr?.let { it1 -> GeoPoint(it1.latitude, addr.longitude) }
-
-                    if (location != null) {
-                        addMarker(location, "de poot")
-                    }
+                if (location != null) {
+                    addMarker(location, toiletName)
+                    //moveMap(location);
                 }
-            } catch (e: java.lang.Exception) {
-                //print to console if error
-                print(e.message)
             }
-        }.start()
+        } catch (e: java.lang.Exception) {
+            //print to console if error
+            print(e.message)
+        }
     }
 
     private fun addMarker(geoPoint: GeoPoint, name: String) {
