@@ -38,6 +38,12 @@ class MainActivity : Activity() {
     
     //arraylist of toilet objects for the map / init file
     var toilets = ArrayList<Toilet>()
+    var toiletsFiltered = ArrayList<Toilet>()
+
+    //Variables for filters:
+    var mustBeBothGenders: Boolean = false //must have toilets for both genders
+    var mustBeDiaper: Boolean = false //must have diaper changing area
+    var mustBeHandi: Boolean = false //must have a handicap-accessible toilet
 
     //private var mMapView: MapView? = null
     private var mMyLocationOverlay: ItemizedOverlay<OverlayItem>? = null
@@ -174,8 +180,9 @@ class MainActivity : Activity() {
         }
     }
 
-    fun addToilet(toilet: Toilet) {
-        toilets.add(toilet);
+    fun addToilet(toilet: Toilet, isFiltered: Boolean = false) {
+        if (!isFiltered)
+            toilets.add(toilet);
 
         try {
             var toiletName = toilet.straat + " " + toilet.huisnummer;
@@ -215,6 +222,49 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         mMapView?.onResume()
+    }
+
+    fun clearMap() {
+        mMapView?.overlays?.clear()
+        mMapView?.invalidate() // Redraw map
+    }
+
+    @SuppressLint("MissingPermission")
+    fun addUserPosition() {
+        fusedLocationClient.lastLocation.addOnSuccessListener { location->
+            if (location != null) {
+                val userLocation = GeoPoint(location.latitude, location.longitude)
+                setCenter(userLocation, "You are here")
+            }
+        }
+    }
+
+    fun filterToilets(mustBeBothGenders: Boolean, mustBeHandi: Boolean, mustBeDiaper: Boolean) {
+        //erase toiletsFiltered and map icons:
+        toiletsFiltered.clear()
+        clearMap()
+
+        //filter toilets:
+        for (toilet in toilets) {
+            if (mustBeBothGenders && !toilet.doelgroep.equals("man/vrouw")) {
+                continue
+            }
+            if (mustBeHandi && !toilet.handicap.equals("ja")) {
+                continue
+            }
+            if (mustBeDiaper && !toilet.luiertafel.equals("ja")) {
+                continue
+            }
+            toiletsFiltered.add(toilet)
+        }
+
+        //add toilets to map:
+        for (toilet in toiletsFiltered) {
+            addToilet(toilet)
+        }
+
+        //add user position:
+        addUserPosition()
     }
 
     // AsyncTask inner class
