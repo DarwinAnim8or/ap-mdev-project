@@ -3,8 +3,10 @@ package be.ap.edu.mapsaver
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
+import android.database.sqlite.SQLiteDatabase
 import android.location.*
 import android.location.Address
 import android.os.AsyncTask
@@ -265,6 +267,37 @@ class MainActivity : Activity() {
 
         //add user position:
         addUserPosition()
+    }
+
+    @SuppressLint("Range")
+    fun readFiltersFromLocalSQLite() {
+        //load filters to local SQLite, as bools one by one:
+        val dbHelper = DatabaseHelper(this)
+        val db = dbHelper.writableDatabase
+
+        val cursor = db.rawQuery("SELECT * FROM filters", null)
+        if (cursor.moveToFirst()) {
+            val mustBeBothGenders = cursor.getInt(cursor.getColumnIndex("mustBeBothGenders")) == 1
+            val mustBeHandi = cursor.getInt(cursor.getColumnIndex("mustBeHandi")) == 1
+            val mustBeDiaper = cursor.getInt(cursor.getColumnIndex("mustBeDiaper")) == 1
+
+            filterToilets(mustBeBothGenders, mustBeHandi, mustBeDiaper)
+        }
+
+        cursor.close()
+    }
+
+    fun saveFiltersToLocalSQLite(mustBeBothGenders: Boolean, mustBeHandi: Boolean, mustBeDiaper: Boolean) {
+        //save filters to local SQLite, as bools one by one:
+        val dbHelper = DatabaseHelper(this)
+        val db = dbHelper.writableDatabase
+
+        val values = ContentValues()
+        values.put("mustBeBothGenders", if (mustBeBothGenders) 1 else 0)
+        values.put("mustBeHandi", if (mustBeHandi) 1 else 0)
+        values.put("mustBeDiaper", if (mustBeDiaper) 1 else 0)
+
+        db.insertWithOnConflict("filters", null, values, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
     // AsyncTask inner class
