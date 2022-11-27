@@ -1,6 +1,7 @@
 package be.ap.edu.mapsaver
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
@@ -15,6 +16,8 @@ import android.widget.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.beust.klaxon.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -50,6 +53,8 @@ class MainActivity : Activity() {
         var mMapView: MapView? = null
     }
 
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -59,6 +64,9 @@ class MainActivity : Activity() {
 
         //create geocoder object
         geocoder = Geocoder(this, Locale.getDefault())
+
+        //get location
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this!!)
 
         //important! set your user agent to prevent getting banned from the osm servers
         Configuration.getInstance().load(applicationContext, PreferenceManager.getDefaultSharedPreferences(applicationContext))
@@ -149,6 +157,7 @@ class MainActivity : Activity() {
         }
     }
 
+    @SuppressLint("MissingPermission")
     fun initMap() {
         mMapView?.setTileSource(TileSourceFactory.MAPNIK)
 
@@ -157,17 +166,11 @@ class MainActivity : Activity() {
         //this.mMapView?.overlays?.add(miniMapOverlay)
 
         //get location of user
-        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val locationListener = object : LocationListener {
-            override fun onLocationChanged(location: Location) {
-                val geoPoint = GeoPoint(location.latitude, location.longitude)
-                mMapView?.controller?.setZoom(17.0)
-                setCenter(geoPoint, "You are here")
+        fusedLocationClient.lastLocation.addOnSuccessListener { location->
+            if (location != null) {
+                val userLocation = GeoPoint(location.latitude, location.longitude)
+                setCenter(userLocation, "You are here")
             }
-
-            override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
-            override fun onProviderEnabled(provider: String) {}
-            override fun onProviderDisabled(provider: String) {}
         }
     }
 
@@ -183,11 +186,9 @@ class MainActivity : Activity() {
 
                 if (location != null) {
                     addMarker(location, toiletName)
-                    //moveMap(location);
                 }
             }
         } catch (e: java.lang.Exception) {
-            //print to console if error
             print(e.message)
         }
     }
