@@ -47,6 +47,8 @@ class MainActivity : Activity() {
     var mustBeDiaper: Boolean = false //must have diaper changing area
     var mustBeHandi: Boolean = false //must have a handicap-accessible toilet
 
+    var dbHelper: DatabaseHelper? = null
+
     //private var mMapView: MapView? = null
     private var mMyLocationOverlay: ItemizedOverlay<OverlayItem>? = null
     private var items = ArrayList<OverlayItem>()
@@ -75,13 +77,6 @@ class MainActivity : Activity() {
 
         //get location
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this!!)
-
-        //read our preferences
-        //readFiltersFromLocalSQLite()
-
-        println(mustBeBothGenders)
-        println(mustBeDiaper)
-        println(mustBeHandi)
 
         //important! set your user agent to prevent getting banned from the osm servers
         Configuration.getInstance().load(applicationContext, PreferenceManager.getDefaultSharedPreferences(applicationContext))
@@ -144,6 +139,10 @@ class MainActivity : Activity() {
 
         //pull toilets:
         MapInit().Initialize()
+
+        //read our preferences
+        dbHelper = DatabaseHelper(this)
+        readFiltersFromLocalSQLite()
     }
 
     private fun moveMap(location: GeoPoint) {
@@ -180,13 +179,12 @@ class MainActivity : Activity() {
         //val miniMapOverlay = MinimapOverlay(this, mMapView!!.tileRequestCompleteHandler)
         //this.mMapView?.overlays?.add(miniMapOverlay)
 
+        //set our default location to Ellermanstraat 33
+        val startPoint = GeoPoint(51.219447, 4.402464)
+        setCenter(startPoint, "Ellermanstraat 33")
+
         //get location of user
-        fusedLocationClient.lastLocation.addOnSuccessListener { location->
-            if (location != null) {
-                val userLocation = GeoPoint(location.latitude, location.longitude)
-                setCenter(userLocation, "You are here")
-            }
-        }
+        addUserPosition()
     }
 
     fun addToilet(toilet: Toilet, isFiltered: Boolean = false) {
@@ -235,7 +233,7 @@ class MainActivity : Activity() {
         }
     }
 
-    fun filterToilets(mustBeBothGenders: Boolean, mustBeHandi: Boolean, mustBeDiaper: Boolean) {
+    private fun filterToilets(mustBeBothGenders: Boolean, mustBeHandi: Boolean, mustBeDiaper: Boolean) {
         //erase toiletsFiltered and map icons:
         toiletsFiltered.clear()
         clearMap()
@@ -266,16 +264,24 @@ class MainActivity : Activity() {
     @SuppressLint("Range")
     fun readFiltersFromLocalSQLite() {
         //load filters to local SQLite, as bools one by one:
-        val dbHelper = DatabaseHelper(this)
-        val db = dbHelper.writableDatabase
+        val db = dbHelper!!.writableDatabase
 
-        val cursor = db.rawQuery("SELECT * FROM filters", null)
+        val cursor = db.rawQuery("SELECT * FROM preferences", null)
         if (cursor.moveToFirst()) {
             val mustBeBothGenders = cursor.getInt(cursor.getColumnIndex("mustBeBothGenders")) == 1
             val mustBeHandi = cursor.getInt(cursor.getColumnIndex("mustBeHandi")) == 1
             val mustBeDiaper = cursor.getInt(cursor.getColumnIndex("mustBeDiaper")) == 1
 
             filterToilets(mustBeBothGenders, mustBeHandi, mustBeDiaper)
+        }
+
+        //if select was empty, add default values:
+        if (cursor.count == 0) {
+            val values = ContentValues()
+            values.put("mustBeBothGenders", 0)
+            values.put("mustBeHandi", 0)
+            values.put("mustBeDiaper", 0)
+            db.insert("preferences", null, values)
         }
 
         cursor.close()
