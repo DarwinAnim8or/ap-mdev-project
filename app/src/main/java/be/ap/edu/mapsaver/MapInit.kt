@@ -1,6 +1,7 @@
 package be.ap.edu.mapsaver
 
 import android.app.PendingIntent.getActivity
+import android.location.Address
 import android.widget.Toast
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.firestore.QuerySnapshot
@@ -8,6 +9,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 //import org.graalvm.compiler.core.common.LIRKind.reference
 import org.json.JSONObject
+import org.osmdroid.util.GeoPoint
 import java.net.*
 import java.util.*
 
@@ -15,22 +17,17 @@ class MapInit {
     val db = Firebase.firestore
 
     fun Initialize() {
-        //check firebase db to see if there is any map data:
-        if (checkForData()) {
-            //if there is data, load it
-            println("Data, exists, loading")
-            loadMapData()
-        } else {
-            //if there is no data, create a new map
-            createNewMap()
-        }
-    }
+        //createNewMap()
 
-    fun checkForData(): Boolean {
-        //simply check to see if there's anything in the firebase db
-        //if there is, return true
-        val toilets = db.collection("toilets")
-        return toilets.get() != null
+        //check firebase db to see if there are toilets saved:
+        db.collection("toilets").get().addOnSuccessListener(OnSuccessListener<QuerySnapshot> { querySnapshot ->
+            //if there are 0 toilets in this collection or the collection does not exist
+            if (querySnapshot.isEmpty) {
+                createNewMap()
+            } else {
+                loadMapData()
+            }
+        })
     }
 
     fun createNewMap() {
@@ -83,12 +80,36 @@ class MapInit {
                 toilet.long = toiletJson.getString("LONG")
 
                 toilet.handicap = toiletJson.getString("INTEGRAAL_TOEGANKELIJK")
+                toilet.naam = toilet.straat + " " + toilet.huisnummer;
+
+                //get the long and latitude from geopoint, so we can save it
+                try {
+
+                    var geoResults: MutableList<Address>? = MainActivity.geocoder!!.getFromLocationName(toilet.naam, 1)
+                    if (geoResults?.isNotEmpty() == true) {
+                        val addr = geoResults?.get(0)
+                        val location = addr?.let { it1 -> GeoPoint(it1.latitude, addr.longitude) }
+
+                        if (location != null) {
+                            toilet.geoLat = location.latitude;
+                            toilet.geoLong = location.longitude;
+                        }
+                    }
+                } catch (e: java.lang.Exception) {
+                    print(e.message)
+                }
+
                 toilets.add(toilet)
             }
 
             //4. save to firebase
             for (toilet in toilets) {
-                toilet.id?.let { db.collection("toilets").document(it).set(toilet) }
+                try {
+                    db.collection("toilets").document(toilet.id!!).set(toilet)
+                } catch (e: Exception) {
+                    print(e.message)
+                }
+                //toilet.id?.let { db.collection("toilets").document(it).set(toilet) }
             }
 
             loadMapData()
@@ -116,6 +137,11 @@ class MapInit {
                 toilet.lat = document.getString("lat")
                 toilet.long = document.getString("long")
                 toilet.handicap = document.getString("handicap")
+
+                //custom fields
+                toilet.naam = document.getString("naam")
+                toilet.geoLat = document.getDouble("geoLat")!!
+                toilet.geoLong = document.getDouble("geoLong")!!
 
                 //call the add function from the mainActivity
                 MainActivity().addToilet(toilet)
