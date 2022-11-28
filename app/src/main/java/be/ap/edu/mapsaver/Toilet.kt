@@ -15,4 +15,7 @@ class Toilet {
     var lat: String? = null
     var long: String? = null
     var handicap: String? = null
+    var geoLat: Double = 0.0
+    var geoLong: Double = 0.0
+    var naam: String? = null
 }

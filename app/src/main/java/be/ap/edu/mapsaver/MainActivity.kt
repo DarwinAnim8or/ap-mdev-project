@@ -76,6 +76,13 @@ class MainActivity : Activity() {
         //get location
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this!!)
 
+        //read our preferences
+        //readFiltersFromLocalSQLite()
+
+        println(mustBeBothGenders)
+        println(mustBeDiaper)
+        println(mustBeHandi)
+
         //important! set your user agent to prevent getting banned from the osm servers
         Configuration.getInstance().load(applicationContext, PreferenceManager.getDefaultSharedPreferences(applicationContext))
         Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
@@ -186,20 +193,7 @@ class MainActivity : Activity() {
         if (!isFiltered)
             toilets.add(toilet);
 
-        try {
-            var toiletName = toilet.straat + " " + toilet.huisnummer;
-            var geoResults: MutableList<Address>? = geocoder!!.getFromLocationName(toiletName, 1)
-            if (geoResults?.isNotEmpty() == true) {
-                val addr = geoResults?.get(0)
-                val location = addr?.let { it1 -> GeoPoint(it1.latitude, addr.longitude) }
-
-                if (location != null) {
-                    addMarker(location, toiletName)
-                }
-            }
-        } catch (e: java.lang.Exception) {
-            print(e.message)
-        }
+        addMarker(GeoPoint(toilet.geoLat, toilet.geoLong), toilet.naam!!)
     }
 
     private fun addMarker(geoPoint: GeoPoint, name: String) {
