@@ -1,16 +1,17 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_activity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
     <org.osmdroid.views.MapView
         android:id="@+id/mapview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="635dp"
         android:layout_below="@+id/search_button"
-        android:layout_alignParentStart="true">
-    </org.osmdroid.views.MapView>
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="0dp"/>
 
     <EditText
         android:id="@+id/search_txtview"
@@ -36,4 +37,37 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
         android:text="Clear" />
+
+    <androidx.fragment.app.FragmentContainerView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/fragment_container_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="3dp"/>
+
+
+    <LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:weightSum="2"
+    android:layout_alignParentBottom="true"
+        android:elevation="2dp">
+    <Button
+        android:id="@+id/list_button"
+        android:layout_width="205dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        style="@style/Button"
+        android:text="@string/list_text" />
+
+    <Button
+        android:id="@+id/report_button"
+        android:layout_width="205dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        style="@style/Button"
+        android:text="@string/report_text" />
+</LinearLayout>
+
 </RelativeLayout>

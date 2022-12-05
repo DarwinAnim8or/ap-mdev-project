@@ -27,11 +27,17 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    buildFeatures {
+        viewBinding true
+    }
 }
 
 
 
 dependencies {
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    def fragment_version = "1.5.4"
+
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'org.osmdroid:osmdroid-android:6.1.10'
     implementation 'com.beust:klaxon:5.0.1'
@@ -40,8 +46,11 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
     implementation platform('com.google.firebase:firebase-bom:31.1.0')
     implementation 'com.google.firebase:firebase-firestore-ktx'
-
+    implementation 'com.google.android.material:material:1.0.0'
+    implementation "androidx.fragment:fragment-ktx:$fragment_version"
+    implementation 'com.google.android.material:material:1.5.0'
 }
+
 repositories {
     mavenCentral()
 }

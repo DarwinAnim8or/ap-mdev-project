@@ -2,22 +2,32 @@ package be.ap.edu.mapsaver
 
 import android.Manifest
 import android.app.Activity
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
+import android.nfc.Tag
 import android.os.AsyncTask
 import android.os.Bundle
 import android.preference.PreferenceManager
+import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.add
+import androidx.fragment.app.commit
+import androidx.fragment.app.replace
 import com.beust.klaxon.*
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.activity_main.*
 import okhttp3.*
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -25,11 +35,12 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.*
 import java.io.File
+import java.lang.Exception
 import java.net.*
 import java.util.*
 
 
-class MainActivity : Activity() {
+class MainActivity : AppCompatActivity() {
 
     val db = Firebase.firestore
     
@@ -42,6 +53,7 @@ class MainActivity : Activity() {
     private var searchField: EditText? = null
     private var searchButton: Button? = null
     private var clearButton: Button? = null
+    private var listButton: Button? = null
     private val urlNominatim = "https://nominatim.openstreetmap.org/"
 
     private var geocoder: Geocoder? = null
@@ -88,7 +100,7 @@ class MainActivity : Activity() {
                 }else{
                     Toast.makeText(this,"Location Not Found",Toast.LENGTH_LONG)
                 }
-            } catch (e: java.lang.Exception) {
+            } catch (e: Exception) {
                 print(e.message)
             }
         }
@@ -105,6 +117,17 @@ class MainActivity : Activity() {
             //Add toilets
 
         }
+
+        listButton = findViewById(R.id.list_button)
+        listButton?.setOnClickListener {
+            supportFragmentManager.commit {
+                replace<ItemFragment>(R.id.fragment_container_view)
+                setReorderingAllowed(true)
+                addToBackStack("List")
+            }
+        }
+
+        //set on touch listener for this activity, register tap and see if it happens inside the fragment container. if not, pop back stack
 
         if (hasPermissions()) {
             initMap()
