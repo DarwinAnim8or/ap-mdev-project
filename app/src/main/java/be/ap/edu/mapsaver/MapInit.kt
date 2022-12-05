@@ -17,17 +17,17 @@ class MapInit {
     val db = Firebase.firestore
 
     fun Initialize() {
-        //createNewMap()
+        createNewMap()
 
         //check firebase db to see if there are toilets saved:
-        db.collection("toilets").get().addOnSuccessListener(OnSuccessListener<QuerySnapshot> { querySnapshot ->
+        /*db.collection("toilets").get().addOnSuccessListener(OnSuccessListener<QuerySnapshot> { querySnapshot ->
             //if there are 0 toilets in this collection or the collection does not exist
             if (querySnapshot.isEmpty) {
                 createNewMap()
             } else {
                 loadMapData()
             }
-        })
+        })*/
     }
 
     fun createNewMap() {

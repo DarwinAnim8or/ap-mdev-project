@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.database.sqlite.SQLiteDatabase
@@ -107,8 +108,10 @@ class MainActivity : Activity() {
         addButton = findViewById(R.id.fab_add)
         addButton?.setOnClickListener {
             //start new activity to add a toilet
+            val intent = Intent(this, AddToilet::class.java)
 
             //when we return, refresh map
+            startActivityForResult(intent, 1)
         }
 
         if (hasPermissions()) {
