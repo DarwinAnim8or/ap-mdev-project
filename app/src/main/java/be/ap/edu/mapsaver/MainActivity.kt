@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat
 import com.beust.klaxon.*
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -57,7 +58,7 @@ class MainActivity : Activity() {
     private var items = ArrayList<OverlayItem>()
     private var searchField: EditText? = null
     private var searchButton: Button? = null
-    private var clearButton: Button? = null
+    private var addButton: FloatingActionButton? = null
     private val urlNominatim = "https://nominatim.openstreetmap.org/"
 
     //static geocoder for use in other classes
@@ -103,9 +104,11 @@ class MainActivity : Activity() {
             //TODO: add search here for a toilet!
         }
 
-        clearButton = findViewById(R.id.clear_button)
-        clearButton?.setOnClickListener {
-            //TODO: replace this button with a button for adding a marker
+        addButton = findViewById(R.id.fab_add)
+        addButton?.setOnClickListener {
+            //start new activity to add a toilet
+
+            //when we return, refresh map
         }
 
         if (hasPermissions()) {
