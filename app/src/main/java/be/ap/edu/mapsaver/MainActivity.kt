@@ -100,35 +100,12 @@ class MainActivity : Activity() {
         searchField = findViewById(R.id.search_txtview)
         searchButton = findViewById(R.id.search_button)
         searchButton?.setOnClickListener {
-            try {
-                //val geocoder = Geocoder(this, Locale.getDefault())
-                var geoResults: MutableList<Address>? = geocoder!!.getFromLocationName(searchField!!.text.toString(), 1)
-                if (geoResults?.isNotEmpty() == true) {
-                    val addr = geoResults?.get(0)
-                    val location = addr?.let { it1 -> GeoPoint(it1.latitude, addr.longitude) }
-
-                    if (location != null) {
-                        moveMap(location)
-                    }
-                }else{
-                    Toast.makeText(this,"Location Not Found",Toast.LENGTH_LONG)
-                }
-            } catch (e: java.lang.Exception) {
-                print(e.message)
-            }
+            //TODO: add search here for a toilet!
         }
 
         clearButton = findViewById(R.id.clear_button)
         clearButton?.setOnClickListener {
-            mMapView?.overlays?.clear()
-            // Redraw map
-            mMapView?.invalidate()
-
-            // Clear search field
-            searchField?.setText("")
-
-            //Add toilets
-
+            //TODO: replace this button with a button for adding a marker
         }
 
         if (hasPermissions()) {
