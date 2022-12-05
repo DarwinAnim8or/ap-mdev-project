@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentValues
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -11,15 +12,24 @@ import android.content.pm.PackageManager
 import android.database.sqlite.SQLiteDatabase
 import android.location.*
 import android.location.Address
+import android.location.Geocoder
+import android.nfc.Tag
 import android.os.AsyncTask
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.preference.PreferenceManager.getDefaultSharedPreferences
+import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.add
+import androidx.fragment.app.commit
+import androidx.fragment.app.replace
 import com.beust.klaxon.*
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -27,6 +37,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.activity_main.*
 import okhttp3.*
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -34,11 +45,12 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.*
 import java.io.File
+import java.lang.Exception
 import java.net.*
 import java.util.*
 
 
-class MainActivity : Activity() {
+class MainActivity : AppCompatActivity() {
 
     val db = Firebase.firestore
     
@@ -113,6 +125,17 @@ class MainActivity : Activity() {
             //when we return, refresh map
             startActivityForResult(intent, 1)
         }
+
+        listButton = findViewById(R.id.list_button)
+        listButton?.setOnClickListener {
+            supportFragmentManager.commit {
+                replace<ItemFragment>(R.id.fragment_container_view)
+                setReorderingAllowed(true)
+                addToBackStack("List")
+            }
+        }
+
+        //set on touch listener for this activity, register tap and see if it happens inside the fragment container. if not, pop back stack
 
         if (hasPermissions()) {
             initMap()

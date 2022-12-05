@@ -1,6 +1,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_activity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/MyMaterialTheme"
@@ -8,11 +9,11 @@
 
     <org.osmdroid.views.MapView
         android:id="@+id/mapview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="635dp"
         android:layout_below="@+id/search_button"
-        android:layout_alignParentStart="true">
-    </org.osmdroid.views.MapView>
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="0dp"/>
 
     <EditText
         android:id="@+id/search_txtview"
