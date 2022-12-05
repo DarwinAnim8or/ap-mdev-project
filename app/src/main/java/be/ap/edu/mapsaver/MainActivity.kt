@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.database.sqlite.SQLiteDatabase
 import android.location.*
@@ -12,6 +13,7 @@ import android.location.Address
 import android.os.AsyncTask
 import android.os.Bundle
 import android.preference.PreferenceManager
+import android.preference.PreferenceManager.getDefaultSharedPreferences
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
@@ -41,6 +43,7 @@ class MainActivity : Activity() {
     //arraylist of toilet objects for the map / init file
     var toilets = ArrayList<Toilet>()
     var toiletsFiltered = ArrayList<Toilet>()
+    var toiletsFave = ArrayList<String>() //array list of Ids for toilets we like
 
     //Variables for filters:
     var mustBeBothGenders: Boolean = false //must have toilets for both genders
@@ -79,7 +82,7 @@ class MainActivity : Activity() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this!!)
 
         //important! set your user agent to prevent getting banned from the osm servers
-        Configuration.getInstance().load(applicationContext, PreferenceManager.getDefaultSharedPreferences(applicationContext))
+        Configuration.getInstance().load(applicationContext, getDefaultSharedPreferences(applicationContext))
         Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
 
         // Problem with SQLite db, solution :
@@ -142,7 +145,8 @@ class MainActivity : Activity() {
 
         //read our preferences
         dbHelper = DatabaseHelper(this)
-        readFiltersFromLocalSQLite()
+        readFilters()
+        readFavesFromLocalSQLite()
     }
 
     private fun moveMap(location: GeoPoint) {
@@ -261,63 +265,45 @@ class MainActivity : Activity() {
         addUserPosition()
     }
 
+    fun readFilters() {
+        //load filters from shared preferences:
+        val sharedPref = getSharedPreferences("filters", Context.MODE_PRIVATE)
+
+        val mustBeBothGenders = sharedPref.getBoolean("mustBeBothGenders", false)
+        val mustBeHandi = sharedPref.getBoolean("mustBeHandi", false)
+        val mustBeDiaper = sharedPref.getBoolean("mustBeDiaper", false)
+
+        //filter toilets:
+        filterToilets(mustBeBothGenders, mustBeHandi, mustBeDiaper)
+    }
+
     @SuppressLint("Range")
-    fun readFiltersFromLocalSQLite() {
-        //load filters to local SQLite, as bools one by one:
-        val db = dbHelper!!.writableDatabase
-
-        val cursor = db.rawQuery("SELECT * FROM preferences", null)
-        if (cursor.moveToFirst()) {
-            val mustBeBothGenders = cursor.getInt(cursor.getColumnIndex("mustBeBothGenders")) == 1
-            val mustBeHandi = cursor.getInt(cursor.getColumnIndex("mustBeHandi")) == 1
-            val mustBeDiaper = cursor.getInt(cursor.getColumnIndex("mustBeDiaper")) == 1
-
-            filterToilets(mustBeBothGenders, mustBeHandi, mustBeDiaper)
+    fun readFavesFromLocalSQLite() {
+        //load faves
+        for (toilet in toilets) {
+            val isF = toilet.id?.let { dbHelper!!.getFave(it) }
+            if (isF != "") {
+                toilet.id?.let { toiletsFave.add(it) }
+            }
         }
-
-        //if select was empty, add default values:
-        if (cursor.count == 0) {
-            val values = ContentValues()
-            values.put("mustBeBothGenders", 0)
-            values.put("mustBeHandi", 0)
-            values.put("mustBeDiaper", 0)
-            db.insert("preferences", null, values)
-        }
-
-        cursor.close()
     }
 
-    fun saveFiltersToLocalSQLite(mustBeBothGenders: Boolean, mustBeHandi: Boolean, mustBeDiaper: Boolean) {
-        //save filters to local SQLite, as bools one by one:
-        val dbHelper = DatabaseHelper(this)
-        val db = dbHelper.writableDatabase
-
-        val values = ContentValues()
-        values.put("mustBeBothGenders", if (mustBeBothGenders) 1 else 0)
-        values.put("mustBeHandi", if (mustBeHandi) 1 else 0)
-        values.put("mustBeDiaper", if (mustBeDiaper) 1 else 0)
-
-        db.insertWithOnConflict("filters", null, values, SQLiteDatabase.CONFLICT_REPLACE)
+    fun saveFilters(mustBeBothGenders: Boolean, mustBeHandi: Boolean, mustBeDiaper: Boolean) {
+        val sharedPref = getSharedPreferences("filters", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putBoolean("mustBeBothGenders", mustBeBothGenders)
+            putBoolean("mustBeHandi", mustBeHandi)
+            putBoolean("mustBeDiaper", mustBeDiaper)
+            apply()
+        }
     }
 
-    // AsyncTask inner class
-    inner class MyAsyncTask : AsyncTask<URL, Int, String>() {
+    fun saveFavesToLocalSQLite() {
+        val dpHelper = DatabaseHelper(this)
+        dbHelper?.deleteFaves() //clear previous faves
 
-
-        override fun doInBackground(vararg params: URL?): String {
-
-             return ""
-        }
-
-        // vararg : variable number of arguments
-        // * : spread operator, unpacks an array into the list of values from the array
-        override fun onProgressUpdate(vararg values: Int?) {
-            super.onProgressUpdate(*values)
-        }
-
-        override fun onPostExecute(result: String?) {
-            super.onPostExecute(result)
-
+        for (Id: String in toiletsFave) {
+            dbHelper?.insertFave(Id, "true")
         }
     }
 }

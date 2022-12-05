@@ -10,32 +10,25 @@ import android.database.sqlite.SQLiteOpenHelper
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, 1) {
     override fun onCreate(db: SQLiteDatabase?) {
-        db?.execSQL("create table preferences (id integer primary key autoincrement, name text, value text)")
+        db?.execSQL("create table faves (id integer primary key autoincrement, name text, value text)")
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        db?.execSQL("drop table if exists preferences")
+        db?.execSQL("drop table if exists faves")
     }
 
-    fun insertData(name: String, value: String) {
+    fun insertFave(Id: String, value: String) {
         val db = this.writableDatabase
         val contentValues = ContentValues()
-        contentValues.put("name", name)
+        contentValues.put("Id", Id)
         contentValues.put("value", value)
-        db.insert("preferences", null, contentValues)
-    }
-
-    fun updateData(name: String, value: String) {
-        val db = this.writableDatabase
-        val contentValues = ContentValues()
-        contentValues.put("value", value)
-        db.update("preferences", contentValues, "name = ?", arrayOf(name))
+        db.insert("faves", null, contentValues)
     }
 
     @SuppressLint("Range")
-    fun getData(name: String): String {
+    fun getFave(Id: String): String {
         val db = this.readableDatabase
-        val cursor: Cursor = db.rawQuery("select * from preferences where name = ?", arrayOf(name))
+        val cursor: Cursor = db.rawQuery("select * from faves where Id = ?", arrayOf(Id))
         var value = ""
         if (cursor.moveToFirst()) {
             value = cursor.getString(cursor.getColumnIndex("value"))
@@ -43,9 +36,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return value
     }
 
-    fun deleteData(name: String) {
+    fun deleteFaves() {
         val db = this.writableDatabase
-        db.delete("preferences", "name = ?", arrayOf(name))
+        db?.execSQL("drop table if exists faves")
+        db?.execSQL("create table faves (id integer primary key autoincrement, name text, value text)")
     }
 
     companion object {
