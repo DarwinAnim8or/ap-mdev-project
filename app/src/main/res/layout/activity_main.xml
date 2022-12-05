@@ -1,17 +1,17 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main_activity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
     <org.osmdroid.views.MapView
         android:id="@+id/mapview"
-        android:layout_width="match_parent"
-        android:layout_height="635dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_below="@+id/search_button"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="0dp"/>
+        android:layout_alignParentStart="true">
+    </org.osmdroid.views.MapView>
 
     <EditText
         android:id="@+id/search_txtview"
@@ -27,47 +27,26 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_toStartOf="@+id/clear_button"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="1dp"
+        android:layout_marginEnd="48dp"
         android:text="@string/button_text" />
 
-    <Button
-        android:id="@+id/clear_button"
-        android:layout_width="92dp"
-        android:layout_height="wrap_content"
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add"
+        android:layout_width="94dp"
+        android:layout_height="130dp"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentTop="true"
-        android:text="Clear" />
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="end|bottom"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="32dp"
+        android:contentDescription="Add Toilet"
+        android:src="@drawable/ic_baseline_add_24_white"
+        app:backgroundTint="#4CAF50" />
 
-    <androidx.fragment.app.FragmentContainerView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/fragment_container_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:elevation="3dp"/>
 
-
-    <LinearLayout
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:weightSum="2"
-    android:layout_alignParentBottom="true"
-        android:elevation="2dp">
-    <Button
-        android:id="@+id/list_button"
-        android:layout_width="205dp"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        style="@style/Button"
-        android:text="@string/list_text" />
-
-    <Button
-        android:id="@+id/report_button"
-        android:layout_width="205dp"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        style="@style/Button"
-        android:text="@string/report_text" />
-</LinearLayout>
 
 </RelativeLayout>
