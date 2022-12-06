@@ -6,21 +6,19 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import be.ap.edu.mapsaver.placeholder.PlaceholderContent
-import kotlinx.android.synthetic.main.fragment_item.view.*
+import androidx.recyclerview.widget.RecyclerView.Adapter
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
-
-/**
- * A fragment representing a list of Items.
- */
 class ItemFragment : Fragment() {
 
     private var columnCount = 1
+    val db = Firebase.firestore
+    lateinit var toilets : ArrayList<Toilet>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,8 +26,6 @@ class ItemFragment : Fragment() {
         arguments?.let {
             columnCount = it.getInt(ARG_COLUMN_COUNT)
         }
-
-
     }
 
     override fun onCreateView(
@@ -45,10 +41,24 @@ class ItemFragment : Fragment() {
                     columnCount <= 1 -> LinearLayoutManager(context)
                     else -> GridLayoutManager(context, columnCount)
                 }
-                adapter = MyItemRecyclerViewAdapter(PlaceholderContent.ITEMS)
+
+                toilets = arrayListOf()
+                EventChangeListener { item: Int -> adapter?.notifyItemChanged(item) }
+
+                adapter = MyItemRecyclerViewAdapter(toilets)
             }
         }
         return view
+    }
+
+    private fun EventChangeListener(callback: (Int) -> Unit) {
+        db.collection("toilets").get().addOnSuccessListener { result ->
+            for (document in result.documentChanges) {
+                toilets.add(document.document.toObject(Toilet::class.java))
+                callback(document.newIndex)
+            }
+        }
+
     }
 
     companion object {

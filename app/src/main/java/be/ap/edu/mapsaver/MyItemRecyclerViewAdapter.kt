@@ -20,7 +20,7 @@ import be.ap.edu.mapsaver.databinding.FragmentItemBinding
  * TODO: Replace the implementation with code for your data type.
  */
 class MyItemRecyclerViewAdapter(
-    private val values: List<PlaceholderItem>,
+    private val values: List<Toilet>,
 ) : RecyclerView.Adapter<MyItemRecyclerViewAdapter.ViewHolder>() {
 
     private var context: Context? = null
@@ -42,8 +42,8 @@ class MyItemRecyclerViewAdapter(
         val fm: FragmentManager = (context as AppCompatActivity).supportFragmentManager
         val item = values[position]
         holder.idView.text = item.id
-        holder.contentView.text = item.content
-        holder.detailView.text = item.details
+        holder.contentView.text = item.omschrijving
+        holder.detailView.text = item.openingsuren
 
         holder.itemView.setOnClickListener {
             fm.popBackStackImmediate()
@@ -52,6 +52,11 @@ class MyItemRecyclerViewAdapter(
     }
 
     override fun getItemCount(): Int = values.size
+
+    public fun refreshDataset() {
+        notifyDataSetChanged()
+        Log.d(TAG, "test")
+    }
 
     inner class ViewHolder(binding: FragmentItemBinding) : RecyclerView.ViewHolder(binding.root) {
         val idView: TextView = binding.itemNumber
