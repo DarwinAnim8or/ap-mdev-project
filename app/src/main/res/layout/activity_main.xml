@@ -9,11 +9,10 @@
 
     <org.osmdroid.views.MapView
         android:id="@+id/mapview"
-        android:layout_width="match_parent"
-        android:layout_height="635dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_below="@+id/search_button"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="0dp"/>
+        android:layout_alignParentStart="true" />
 
     <EditText
         android:id="@+id/search_txtview"
@@ -34,6 +33,14 @@
         android:layout_marginEnd="48dp"
         android:text="@string/button_text" />
 
+
+    <androidx.fragment.app.FragmentContainerView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/fragment_container_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="3dp"/>
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add"
         android:layout_width="94dp"
@@ -48,6 +55,21 @@
         android:contentDescription="Add Toilet"
         android:src="@drawable/ic_baseline_add_24_white"
         app:backgroundTint="#4CAF50" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_list"
+        android:layout_width="94dp"
+        android:layout_height="130dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="start|bottom"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="32dp"
+        android:contentDescription="Open Toilet List"
+        android:src="@drawable/ic_baseline_format_list_bulleted_24"
+        app:backgroundTint="#03A9F4" />
 
 
 

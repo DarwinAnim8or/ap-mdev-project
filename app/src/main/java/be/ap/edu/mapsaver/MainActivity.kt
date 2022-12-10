@@ -2,32 +2,20 @@ package be.ap.edu.mapsaver
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.ContentValues
 import android.content.ContentValues.TAG
-import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.database.sqlite.SQLiteDatabase
 import android.location.*
-import android.location.Address
 import android.location.Geocoder
-import android.nfc.Tag
-import android.os.AsyncTask
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.preference.PreferenceManager.getDefaultSharedPreferences
 import android.util.Log
-import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.add
 import androidx.fragment.app.commit
 import androidx.fragment.app.replace
 import com.beust.klaxon.*
@@ -45,7 +33,6 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.*
 import java.io.File
-import java.lang.Exception
 import java.net.*
 import java.util.*
 
@@ -72,12 +59,16 @@ class MainActivity : AppCompatActivity() {
     private var searchField: EditText? = null
     private var searchButton: Button? = null
     private var addButton: FloatingActionButton? = null
+    private var listButton: FloatingActionButton? = null
+
     private val urlNominatim = "https://nominatim.openstreetmap.org/"
 
     //static geocoder for use in other classes
     companion object {
         var geocoder: Geocoder? = null
         var mMapView: MapView? = null
+        var listOpen : Boolean = false
+        lateinit var mUserLocation: GeoPoint
     }
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -94,6 +85,7 @@ class MainActivity : AppCompatActivity() {
 
         //get location
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this!!)
+        mUserLocation = getuserPosition()
 
         //important! set your user agent to prevent getting banned from the osm servers
         Configuration.getInstance().load(applicationContext, getDefaultSharedPreferences(applicationContext))
@@ -126,16 +118,19 @@ class MainActivity : AppCompatActivity() {
             startActivityForResult(intent, 1)
         }
 
-        listButton = findViewById(R.id.list_button)
+        listButton = findViewById(R.id.fab_list)
         listButton?.setOnClickListener {
-            supportFragmentManager.commit {
-                replace<ItemFragment>(R.id.fragment_container_view)
-                setReorderingAllowed(true)
-                addToBackStack("List")
+            if(listOpen) {
+                supportFragmentManager.popBackStackImmediate()
+            } else {
+                supportFragmentManager.commit {
+                    replace<ItemFragment>(R.id.fragment_container_view)
+                    setReorderingAllowed(true)
+                    addToBackStack("List")
+                }
             }
+            listOpen = !listOpen
         }
-
-        //set on touch listener for this activity, register tap and see if it happens inside the fragment container. if not, pop back stack
 
         if (hasPermissions()) {
             initMap()
@@ -160,7 +155,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun View.hideKeyboard() {
-        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val imm = context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(windowToken, 0)
     }
 
@@ -238,14 +233,19 @@ class MainActivity : AppCompatActivity() {
         mMapView?.invalidate() // Redraw map
     }
 
-    @SuppressLint("MissingPermission")
     fun addUserPosition() {
+        setCenter(getuserPosition(), "You are here")
+    }
+
+    @SuppressLint("MissingPermission")
+    fun getuserPosition(): GeoPoint {
+        var output: GeoPoint = GeoPoint(51.219447, 4.402464)
         fusedLocationClient.lastLocation.addOnSuccessListener { location->
             if (location != null) {
-                val userLocation = GeoPoint(location.latitude, location.longitude)
-                setCenter(userLocation, "You are here")
+                output = GeoPoint(location.latitude, location.longitude)
             }
         }
+        return output
     }
 
     private fun filterToilets(mustBeBothGenders: Boolean, mustBeHandi: Boolean, mustBeDiaper: Boolean) {
@@ -278,7 +278,7 @@ class MainActivity : AppCompatActivity() {
 
     fun readFilters() {
         //load filters from shared preferences:
-        val sharedPref = getSharedPreferences("filters", Context.MODE_PRIVATE)
+        val sharedPref = getSharedPreferences("filters", MODE_PRIVATE)
 
         val mustBeBothGenders = sharedPref.getBoolean("mustBeBothGenders", false)
         val mustBeHandi = sharedPref.getBoolean("mustBeHandi", false)
@@ -300,7 +300,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun saveFilters(mustBeBothGenders: Boolean, mustBeHandi: Boolean, mustBeDiaper: Boolean) {
-        val sharedPref = getSharedPreferences("filters", Context.MODE_PRIVATE)
+        val sharedPref = getSharedPreferences("filters", MODE_PRIVATE)
         with(sharedPref.edit()) {
             putBoolean("mustBeBothGenders", mustBeBothGenders)
             putBoolean("mustBeHandi", mustBeHandi)
