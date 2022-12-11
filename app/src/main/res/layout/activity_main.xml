@@ -45,6 +45,7 @@
         android:id="@+id/fab_add"
         android:layout_width="94dp"
         android:layout_height="130dp"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_gravity="end|bottom"
         android:layout_marginStart="16dp"

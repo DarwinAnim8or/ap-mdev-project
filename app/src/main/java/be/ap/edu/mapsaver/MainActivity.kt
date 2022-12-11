@@ -2,13 +2,7 @@ package be.ap.edu.mapsaver
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.ContentValues
 import android.content.Context
-import android.content.Intent
-import android.content.SharedPreferences
-import android.annotation.SuppressLint
-import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.sqlite.SQLiteDatabase
@@ -19,7 +13,6 @@ import android.location.*
 import android.location.Geocoder
 import android.os.Bundle
 import android.preference.PreferenceManager
-import android.preference.PreferenceManager.getDefaultSharedPreferences
 import android.preference.PreferenceManager.getDefaultSharedPreferences
 import android.util.Log
 import android.view.View
@@ -37,15 +30,12 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.android.synthetic.main.activity_main.*
-import okhttp3.*
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.*
 import java.io.File
-import java.net.*
 import java.util.*
 
 
@@ -288,11 +278,12 @@ class MainActivity : AppCompatActivity() {
             addToilet(toilet)
         }
 
+        addUserPosition()
+    }
+
     fun readFilters() {
         //load filters from shared preferences:
         val sharedPref = getSharedPreferences("filters", Context.MODE_PRIVATE)
-        //add user position:
-        addUserPosition()
 
         val mustBeBothGenders = sharedPref.getBoolean("mustBeBothGenders", false)
         val mustBeHandi = sharedPref.getBoolean("mustBeHandi", false)
