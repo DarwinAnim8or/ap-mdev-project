@@ -3,6 +3,8 @@ package Helpers
 import android.location.Address
 import be.ap.edu.mapsaver.MainActivity
 import DataModels.Toilet
+import com.google.android.gms.tasks.OnSuccessListener
+import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 //import org.graalvm.compiler.core.common.LIRKind.reference
@@ -15,17 +17,17 @@ class MapInit {
     val db = Firebase.firestore
 
     fun Initialize() {
-        createNewMap()
+        //createNewMap()
 
         //check firebase db to see if there are toilets saved:
-        /*db.collection("toilets").get().addOnSuccessListener(OnSuccessListener<QuerySnapshot> { querySnapshot ->
+        db.collection("toilets").get().addOnSuccessListener(OnSuccessListener<QuerySnapshot> { querySnapshot ->
             //if there are 0 toilets in this collection or the collection does not exist
             if (querySnapshot.isEmpty) {
                 createNewMap()
             } else {
                 loadMapData()
             }
-        })*/
+        })
     }
 
     fun createNewMap() {
