@@ -35,28 +35,26 @@ import org.osmdroid.views.overlay.*
 import java.io.File
 import java.util.*
 
-
 class MainActivity : AppCompatActivity() {
 
     val db = Firebase.firestore
     
     //arraylist of toilet objects for the map / init file
-    var toilets = ArrayList<Toilet>()
+    
     var toiletsFiltered = ArrayList<Toilet>()
     var toiletsFave = ArrayList<String>() //array list of Ids for toilets we like
-
-    //Variables for filters:
-    var mustBeBothGenders: Boolean = false //must have toilets for both genders
-    var mustBeDiaper: Boolean = false //must have diaper changing area
-    var mustBeHandi: Boolean = false //must have a handicap-accessible toilet
 
     var dbHelper: DatabaseHelper? = null
 
     //private var mMapView: MapView? = null
     private var mMyLocationOverlay: ItemizedOverlay<OverlayItem>? = null
     private var items = ArrayList<OverlayItem>()
-    private var searchField: EditText? = null
-    private var searchButton: Button? = null
+
+    //checkboxes for filters
+    private var cbBothGenders: CheckBox? = null
+    private var cbDiaper: CheckBox? = null
+    private var cbHandi: CheckBox? = null
+
     private var addButton: FloatingActionButton? = null
     private var listButton: FloatingActionButton? = null
 
@@ -68,9 +66,15 @@ class MainActivity : AppCompatActivity() {
         var mMapView: MapView? = null
         var listOpen : Boolean = false
         lateinit var mUserLocation: GeoPoint
-    }
+        var toilets = ArrayList<Toilet>()
 
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
+        //Variables for filters:
+        var mustBeBothGenders: Boolean = false //must have toilets for both genders
+        var mustBeDiaper: Boolean = false //must have diaper changing area
+        var mustBeHandi: Boolean = false //must have a handicap-accessible toilet
+
+        lateinit var fusedLocationClient: FusedLocationProviderClient
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -102,12 +106,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         mMapView = findViewById<MapView>(R.id.mapview)
 
-        searchField = findViewById(R.id.search_txtview)
-        searchButton = findViewById(R.id.search_button)
-        searchButton?.setOnClickListener {
-            //TODO: add search here for a toilet!
-        }
-
         addButton = findViewById(R.id.fab_add)
         addButton?.setOnClickListener {
             //start new activity to add a toilet
@@ -115,15 +113,9 @@ class MainActivity : AppCompatActivity() {
 
             //when we return, refresh map
             startActivityForResult(intent, 1)
-        }
 
-        addButton = findViewById(R.id.fab_add)
-        addButton?.setOnClickListener {
-            //start new activity to add a toilet
-            val intent = Intent(this, AddToilet::class.java)
-
-            //when we return, refresh map
-            startActivityForResult(intent, 1)
+            //toilets.clear()
+            MapInit().Initialize()
         }
 
         listButton = findViewById(R.id.fab_list)
@@ -149,6 +141,30 @@ class MainActivity : AppCompatActivity() {
                     Manifest.permission.ACCESS_COARSE_LOCATION), 100)
         }
 
+        //set up checkboxes
+        cbBothGenders = findViewById(R.id.cbGender)
+        cbDiaper = findViewById(R.id.cbLuier)
+        cbHandi = findViewById(R.id.cbHandi)
+
+        //on click listeners for checkboxes, taking toilets with it and refreshing map
+        cbBothGenders!!.setOnClickListener {
+            mustBeBothGenders = cbBothGenders!!.isChecked
+            filterToilets(mustBeBothGenders, mustBeHandi, mustBeDiaper)
+            saveFilters(mustBeBothGenders, mustBeHandi, mustBeDiaper)
+        }
+
+        cbDiaper!!.setOnClickListener {
+            mustBeDiaper = cbDiaper!!.isChecked
+            filterToilets(mustBeBothGenders, mustBeHandi, mustBeDiaper)
+            saveFilters(mustBeBothGenders, mustBeHandi, mustBeDiaper)
+        }
+
+        cbHandi!!.setOnClickListener {
+            mustBeHandi = cbHandi!!.isChecked
+            filterToilets(mustBeBothGenders, mustBeHandi, mustBeDiaper)
+            saveFilters(mustBeBothGenders, mustBeHandi, mustBeDiaper)
+        }
+
         //pull toilets:
         MapInit().Initialize()
 
@@ -156,6 +172,11 @@ class MainActivity : AppCompatActivity() {
         dbHelper = DatabaseHelper(this)
         readFilters()
         readFavesFromLocalSQLite()
+
+        //set the states of the checkboxes
+        cbHandi!!.isChecked = mustBeHandi
+        cbDiaper!!.isChecked = mustBeDiaper
+        cbBothGenders!!.isChecked = mustBeBothGenders
     }
 
     private fun moveMap(location: GeoPoint) {
@@ -251,7 +272,7 @@ class MainActivity : AppCompatActivity() {
         return output
     }
 
-    private fun filterToilets(mustBeBothGenders: Boolean, mustBeHandi: Boolean, mustBeDiaper: Boolean) {
+    public fun filterToilets(mustBeBothGenders: Boolean, mustBeHandi: Boolean, mustBeDiaper: Boolean) {
         //erase toiletsFiltered and map icons:
         toiletsFiltered.clear()
         clearMap()
@@ -272,8 +293,9 @@ class MainActivity : AppCompatActivity() {
 
         //add toilets to map:
         for (toilet in toiletsFiltered) {
-            addToilet(toilet)
+            addToilet(toilet, true)
         }
+
 
         addUserPosition()
     }
@@ -282,9 +304,9 @@ class MainActivity : AppCompatActivity() {
         //load filters from shared preferences:
         val sharedPref = getSharedPreferences("filters", Context.MODE_PRIVATE)
 
-        val mustBeBothGenders = sharedPref.getBoolean("mustBeBothGenders", false)
-        val mustBeHandi = sharedPref.getBoolean("mustBeHandi", false)
-        val mustBeDiaper = sharedPref.getBoolean("mustBeDiaper", false)
+        mustBeBothGenders = sharedPref.getBoolean("mustBeBothGenders", false)
+        mustBeHandi = sharedPref.getBoolean("mustBeHandi", false)
+        mustBeDiaper = sharedPref.getBoolean("mustBeDiaper", false)
 
         //filter toilets:
         filterToilets(mustBeBothGenders, mustBeHandi, mustBeDiaper)

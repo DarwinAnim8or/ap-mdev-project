@@ -11,28 +11,24 @@
         android:id="@+id/mapview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/search_button"
+        android:layout_below="@+id/cbGender"
         android:layout_alignParentStart="true" />
 
-    <EditText
-        android:id="@+id/search_txtview"
-        android:layout_width="209dp"
+    <CheckBox
+        android:id="@+id/cbGender"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:hint="@string/hint_text"
-        android:text="Meistraat 5, Antwerpen" />
+        android:text="Beide Geslachten" />
 
-    <Button
-        android:id="@+id/search_button"
+    <CheckBox
+        android:id="@+id/cbLuier"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginTop="1dp"
-        android:layout_marginEnd="48dp"
-        android:text="@string/button_text" />
-
+        android:layout_marginEnd="32dp"
+        android:text="Luiertafel" />
 
     <androidx.fragment.app.FragmentContainerView
         xmlns:android="http://schemas.android.com/apk/res/android"
@@ -71,6 +67,15 @@
         android:src="@drawable/ic_baseline_format_list_bulleted_24"
         app:backgroundTint="#03A9F4" />
 
+    <CheckBox
+        android:id="@+id/cbHandi"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_toStartOf="@+id/cbLuier"
+        android:layout_toEndOf="@+id/cbGender"
+        android:text="Handicap" />
 
 
 </RelativeLayout>

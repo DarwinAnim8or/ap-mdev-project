@@ -3,6 +3,9 @@ package Helpers
 import android.location.Address
 import be.ap.edu.mapsaver.MainActivity
 import DataModels.Toilet
+import be.ap.edu.mapsaver.MainActivity.Companion.mustBeBothGenders
+import be.ap.edu.mapsaver.MainActivity.Companion.mustBeDiaper
+import be.ap.edu.mapsaver.MainActivity.Companion.mustBeHandi
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.firestore
@@ -146,6 +149,12 @@ class MapInit {
                 //call the add function from the mainActivity
                 MainActivity().addToilet(toilet)
             }
+
+            MainActivity().filterToilets(
+                mustBeBothGenders,
+                mustBeHandi,
+                mustBeDiaper
+            )
         }
     }
 }
