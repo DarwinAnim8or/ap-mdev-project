@@ -16,6 +16,7 @@ import be.ap.edu.mapsaver.databinding.FragmentItemBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import org.osmdroid.bonuspack.routing.OSRMRoadManager
+import org.osmdroid.bonuspack.routing.Road
 import org.osmdroid.bonuspack.routing.RoadManager
 import org.osmdroid.util.GeoPoint
 import java.text.DecimalFormat
@@ -31,10 +32,11 @@ class MyItemRecyclerViewAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
 
+        context = parent.context
         roadManager = OSRMRoadManager(context, BuildConfig.APPLICATION_ID)
+        (roadManager as OSRMRoadManager).setMean(OSRMRoadManager.MEAN_BY_FOOT)
         MainActivity.geocoder = Geocoder(parent.context, Locale.getDefault())
 
-        context = parent.context
         return ViewHolder(
             FragmentItemBinding.inflate(
                 LayoutInflater.from(parent.context),
@@ -55,6 +57,7 @@ class MyItemRecyclerViewAdapter(
         holder.afstandView.text = "${DecimalFormat("#.##").format(distance)} Km"
 
         holder.itemView.setOnClickListener {
+            getRoute(item.geoLat, item.geoLong)
             fm.popBackStackImmediate()
             MainActivity.listOpen = false
         }
@@ -62,12 +65,22 @@ class MyItemRecyclerViewAdapter(
     }
 
     fun getDistance(lat: Double, long: Double): Double {
-        var output: Double = 1.0
+        return getRoad(lat, long).mLength
+    }
+
+    fun getRoute(lat: Double, long: Double) {
+        var overlay = RoadManager.buildRoadOverlay(getRoad(lat, long))
+        MainActivity.mMapView?.overlays?.removeFirstOrNull()
+        MainActivity.mMapView?.overlays?.add(overlay)
+        MainActivity.mMapView?.invalidate()
+    }
+
+    fun getRoad(lat: Double, long: Double): Road {
+        var output = Road()
         var thread = thread {
             if(MainActivity.mUserLocation != null) {
                 try {
-                    output = roadManager.getRoad(arrayListOf(MainActivity.mUserLocation, GeoPoint(lat, long))).mLength
-                    Log.d(TAG, "$output")
+                    output = roadManager.getRoad(arrayListOf(MainActivity.mUserLocation, GeoPoint(lat, long)))
                 } catch (e : java.lang.NullPointerException) {
                     Log.e(TAG, "$e")
                 }
@@ -75,7 +88,6 @@ class MyItemRecyclerViewAdapter(
         }
         if(thread.state == Thread.State.NEW) thread.start()
         thread.join()
-        Log.d(TAG, "test: $output")
         return output
     }
 
