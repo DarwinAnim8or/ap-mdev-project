@@ -1,6 +1,6 @@
 package be.ap.edu.mapsaver
 
-import android.app.Activity
+import DataModels.Toilet
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.location.Geocoder

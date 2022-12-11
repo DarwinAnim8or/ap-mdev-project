@@ -1,20 +1,17 @@
 package be.ap.edu.mapsaver
 
+import DataModels.Toilet
+import Helpers.DatabaseHelper
+import Helpers.MapInit
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.database.sqlite.SQLiteDatabase
-import android.location.*
-import android.location.Address
-import android.os.AsyncTask
 import android.location.*
 import android.location.Geocoder
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.preference.PreferenceManager.getDefaultSharedPreferences
-import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.*

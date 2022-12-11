@@ -1,10 +1,8 @@
-package be.ap.edu.mapsaver
+package Helpers
 
-import android.app.PendingIntent.getActivity
 import android.location.Address
-import android.widget.Toast
-import com.google.android.gms.tasks.OnSuccessListener
-import com.google.firebase.firestore.QuerySnapshot
+import be.ap.edu.mapsaver.MainActivity
+import DataModels.Toilet
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 //import org.graalvm.compiler.core.common.LIRKind.reference

@@ -1,4 +1,4 @@
-package be.ap.edu.mapsaver
+package DataModels
 
 class Toilet {
     var id: String? = null

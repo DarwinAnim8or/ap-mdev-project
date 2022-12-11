@@ -1,5 +1,5 @@
 //helper class for the sqite database for preferences
-package be.ap.edu.mapsaver
+package Helpers
 
 import android.annotation.SuppressLint
 import android.content.ContentValues
