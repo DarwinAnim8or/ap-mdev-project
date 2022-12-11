@@ -27,11 +27,18 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    buildFeatures {
+        dataBinding true
+        viewBinding true
+    }
 }
 
 
 
 dependencies {
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    def fragment_version = "1.5.4"
+
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     implementation 'androidx.core:core-ktx:1.8.0'
@@ -49,6 +56,9 @@ dependencies {
 
     //implementation 'com.android.support:design:28.0.0'
 
+    implementation "androidx.fragment:fragment-ktx:$fragment_version"
+    implementation 'com.google.android.material:material:1.5.0'
+    implementation 'com.github.MKergall:osmbonuspack:6.9.0'
 }
 repositories {
     mavenCentral()

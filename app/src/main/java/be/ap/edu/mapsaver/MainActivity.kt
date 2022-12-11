@@ -7,19 +7,29 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.annotation.SuppressLint
+import android.content.ContentValues.TAG
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.sqlite.SQLiteDatabase
 import android.location.*
 import android.location.Address
 import android.os.AsyncTask
+import android.location.*
+import android.location.Geocoder
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.preference.PreferenceManager.getDefaultSharedPreferences
+import android.preference.PreferenceManager.getDefaultSharedPreferences
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.commit
+import androidx.fragment.app.replace
 import com.beust.klaxon.*
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -27,6 +37,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.activity_main.*
 import okhttp3.*
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -38,7 +49,7 @@ import java.net.*
 import java.util.*
 
 
-class MainActivity : Activity() {
+class MainActivity : AppCompatActivity() {
 
     val db = Firebase.firestore
     
@@ -60,12 +71,16 @@ class MainActivity : Activity() {
     private var searchField: EditText? = null
     private var searchButton: Button? = null
     private var addButton: FloatingActionButton? = null
+    private var listButton: FloatingActionButton? = null
+
     private val urlNominatim = "https://nominatim.openstreetmap.org/"
 
     //static geocoder for use in other classes
     companion object {
         var geocoder: Geocoder? = null
         var mMapView: MapView? = null
+        var listOpen : Boolean = false
+        lateinit var mUserLocation: GeoPoint
     }
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -82,6 +97,7 @@ class MainActivity : Activity() {
 
         //get location
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this!!)
+        mUserLocation = getuserPosition()
 
         //important! set your user agent to prevent getting banned from the osm servers
         Configuration.getInstance().load(applicationContext, getDefaultSharedPreferences(applicationContext))
@@ -114,6 +130,29 @@ class MainActivity : Activity() {
             startActivityForResult(intent, 1)
         }
 
+        addButton = findViewById(R.id.fab_add)
+        addButton?.setOnClickListener {
+            //start new activity to add a toilet
+            val intent = Intent(this, AddToilet::class.java)
+
+            //when we return, refresh map
+            startActivityForResult(intent, 1)
+        }
+
+        listButton = findViewById(R.id.fab_list)
+        listButton?.setOnClickListener {
+            if(listOpen) {
+                supportFragmentManager.popBackStackImmediate()
+            } else {
+                supportFragmentManager.commit {
+                    replace<ItemFragment>(R.id.fragment_container_view)
+                    setReorderingAllowed(true)
+                    addToBackStack("List")
+                }
+            }
+            listOpen = !listOpen
+        }
+
         if (hasPermissions()) {
             initMap()
         }
@@ -137,7 +176,7 @@ class MainActivity : Activity() {
     }
 
     fun View.hideKeyboard() {
-        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val imm = context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(windowToken, 0)
     }
 
@@ -210,14 +249,19 @@ class MainActivity : Activity() {
         mMapView?.invalidate() // Redraw map
     }
 
-    @SuppressLint("MissingPermission")
     fun addUserPosition() {
+        setCenter(getuserPosition(), "You are here")
+    }
+
+    @SuppressLint("MissingPermission")
+    fun getuserPosition(): GeoPoint {
+        var output: GeoPoint = GeoPoint(51.219447, 4.402464)
         fusedLocationClient.lastLocation.addOnSuccessListener { location->
             if (location != null) {
-                val userLocation = GeoPoint(location.latitude, location.longitude)
-                setCenter(userLocation, "You are here")
+                output = GeoPoint(location.latitude, location.longitude)
             }
         }
+        return output
     }
 
     private fun filterToilets(mustBeBothGenders: Boolean, mustBeHandi: Boolean, mustBeDiaper: Boolean) {
@@ -244,13 +288,11 @@ class MainActivity : Activity() {
             addToilet(toilet)
         }
 
-        //add user position:
-        addUserPosition()
-    }
-
     fun readFilters() {
         //load filters from shared preferences:
         val sharedPref = getSharedPreferences("filters", Context.MODE_PRIVATE)
+        //add user position:
+        addUserPosition()
 
         val mustBeBothGenders = sharedPref.getBoolean("mustBeBothGenders", false)
         val mustBeHandi = sharedPref.getBoolean("mustBeHandi", false)
